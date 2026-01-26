@@ -27,5 +27,10 @@
     "requiredChains": [
       "eip155:8453"
     ]
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjE0MTY0MzIsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhFNzgzNDM2NkRlZGJmOTRjMDRiOTFlOWJDNzZEZDZkMENEOTgzREM3In0",
+    "payload": "eyJkb21haW4iOiJzbmFrZS1iYXNlLWFwcC14aS52ZXJjZWwuYXBwIn0",
+    "signature": "dWz006RTF2WLnclsH3Uwb30aFnTN4l50SsIaK6zxouJ1FX3j6Hw8ClD9uQbE66VqXRtv4qtrDdgEK4CeHMRyORs="
   }
 }
