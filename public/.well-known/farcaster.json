@@ -4,6 +4,7 @@
     "name": "Snake Game",
     "iconUrl": "https://snake-base-app-xi.vercel.app/snake-preview.png",
     "homeUrl": "https://snake-base-app-xi.vercel.app",
+    "castShareUrl": "https://snake-base-app-xi.vercel.app",
     "splashImageUrl": "https://snake-base-app-xi.vercel.app/snake-preview.png",
     "splashBackgroundColor": "#0A0B0D",
     "subtitle": "Classic game on Base",
