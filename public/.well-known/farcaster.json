@@ -20,8 +20,8 @@
       "base"
     ],
     "heroImageUrl": "https://snake-base-app-xi.vercel.app/snake-preview.png",
-    "tagline": "Classic Snake on Base Network",
-    "ogTitle": "🐍 Snake Game - On Base Network",
+    "tagline": "Classic Snake on Base",
+    "ogTitle": "Snake on Base Network",
     "ogDescription": "Classic Snake game with retro skins and tournaments. Play now on Base!",
     "ogImageUrl": "https://snake-base-app-xi.vercel.app/snake-preview.png",
     "requiredChains": [
