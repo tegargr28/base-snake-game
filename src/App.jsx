@@ -1006,6 +1006,7 @@ export default function App() {
   }
 
   function shareToTwitter() {
+    const timestamp = Date.now();
     const text = `🐍 I just scored ${score} points in Base Snake Game!${score > 50 ? ' 🔥' : ''}\n\nCan you beat my score?\n\nPlay now 👇`;
     const url = window.location.href;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
@@ -1013,6 +1014,7 @@ export default function App() {
   }
 
   function shareToFarcaster() {
+    const timestamp = Date.now();
     const text = `🐍 I just scored ${score} points in Base Snake Game!${score > 50 ? ' 🔥' : ''}\n\nCan you beat my score?`;
     const url = window.location.href;
     const farcasterUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(url)}`;
@@ -1022,6 +1024,7 @@ export default function App() {
   function shareToBase() {
     // Share via Base app (if available) or copy to clipboard
     const text = `🐍 I just scored ${score} points in Base Snake Game!${score > 50 ? ' 🔥' : ''}\n\nCan you beat my score?\n\n${window.location.href}`;
+    const timestamp = Date.now();
     
     if (navigator.share) {
       navigator.share({
