@@ -1,81 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-// ==================== CONSTANTS ====================
 const GRID = 18;
 const CELL = 20;
-const SPEED = 100;
+const SPEED = 130;
 const DEV_WALLET = "0xC6DA0c478C7CCeac8354B2BFF141680823c730fF";
 
-const SKINS = {
-  baseNetwork: {
-    name: "Base Network",
-    snake: '#0052FF',
-    head: '#0049E0',
-    food: '#00D4FF',
-    bg: '#0A0B0D',
-    grid: '#1e293b',
-    locked: false,
-    price: 0,
-    description: "Official Base colors 🔵"
-  },
-  nokia3310: {
-    name: "Nokia 3310",
-    snake: '#000000',
-    head: '#000000',
-    food: '#000000',
-    bg: '#9bc700',
-    grid: '#8ba600',
-    locked: false,
-    price: 0,
-    description: "Classic monochrome LCD 📱"
-  },
-  gameboy: {
-    name: "Game Boy",
-    snake: '#0f380f',
-    head: '#0f380f',
-    food: '#0f380f',
-    bg: '#9bbc0f',
-    grid: '#8bac0f',
-    locked: false,
-    price: 0,
-    description: "1989 nostalgia 🎮"
-  },
-  atari: {
-    name: "Atari 2600",
-    snake: '#d85000',
-    head: '#c84000',
-    food: '#fcfc00',
-    bg: '#000000',
-    grid: '#1a0000',
-    locked: true,
-    price: 0.0005,
-    description: "Retro console legend 🕹️"
-  },
-  commodore64: {
-    name: "Commodore 64",
-    snake: '#4040e0',
-    head: '#3030d0',
-    food: '#a0a0a0',
-    bg: '#4040e0',
-    grid: '#3030d0',
-    locked: true,
-    price: 0.0005,
-    description: "80s computer aesthetic 💾"
-  },
-  arcade: {
-    name: "Arcade CRT",
-    snake: '#00ff00',
-    head: '#00dd00',
-    food: '#ffff00',
-    bg: '#000000',
-    grid: '#001a00',
-    locked: true,
-    price: 0.0005,
-    description: "Green phosphor glow 👾"
-  }
-};
-
-// ==================== UTILS ====================
 const playSound = (freq, duration = 50, type = 'sine') => {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -96,458 +25,82 @@ const playSound = (freq, duration = 50, type = 'sine') => {
   }
 };
 
-const randomFood = () => ({
-  x: Math.floor(Math.random() * GRID),
-  y: Math.floor(Math.random() * GRID),
-});
-
-const getWeekStart = () => {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(now.setDate(diff));
-  monday.setHours(0, 0, 0, 0);
-  return monday.getTime();
+const SKINS = {
+  baseNetwork: {
+    name: "Base Network",
+    snake: '#0052FF',
+    head: '#0049E0',
+    food: '#00D4FF',
+    bg: '#0A0B0D',
+    grid: '#1e293b',
+    locked: false,
+    price: 0,
+    description: "Official Base colors"
+  },
+  nokia3310: {
+    name: "Nokia 3310",
+    snake: '#000000',
+    head: '#000000',
+    food: '#000000',
+    bg: '#9bc700',
+    grid: '#8ba600',
+    locked: false,
+    price: 0,
+    description: "Classic monochrome LCD"
+  },
+  gameboy: {
+    name: "Game Boy",
+    snake: '#0f380f',
+    head: '#0f380f',
+    food: '#0f380f',
+    bg: '#9bbc0f',
+    grid: '#8bac0f',
+    locked: false,
+    price: 0,
+    description: "1989 nostalgia"
+  },
+  atari: {
+    name: "Atari 2600",
+    snake: '#d85000',
+    head: '#c84000',
+    food: '#fcfc00',
+    bg: '#000000',
+    grid: '#1a0000',
+    locked: true,
+    price: 0.0005,
+    description: "Retro console legend"
+  },
+  commodore64: {
+    name: "Commodore 64",
+    snake: '#4040e0',
+    head: '#3030d0',
+    food: '#a0a0a0',
+    bg: '#4040e0',
+    grid: '#3030d0',
+    locked: true,
+    price: 0.0005,
+    description: "80s computer aesthetic"
+  },
+  arcade: {
+    name: "Arcade CRT",
+    snake: '#00ff00',
+    head: '#00dd00',
+    food: '#ffff00',
+    bg: '#000000',
+    grid: '#001a00',
+    locked: true,
+    price: 0.0005,
+    description: "Green phosphor glow"
+  }
 };
 
-// ==================== LOADING SCREEN ====================
-function LoadingScreen({ progress }) {
-  return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'linear-gradient(135deg, #0A0B0D 0%, #000814 50%, #001d3d 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      animation: progress === 100 ? 'fadeOut 0.3s ease-out forwards' : 'none'
-    }}>
-      <div style={{
-        marginBottom: '40px',
-        animation: 'pulse 2s ease-in-out infinite'
-      }}>
-        <svg width="120" height="120" viewBox="0 0 120 120" style={{
-          filter: 'drop-shadow(0 0 20px rgba(0, 82, 255, 0.5))'
-        }}>
-          <rect x="20" y="60" width="20" height="20" fill="#0052FF" />
-          <rect x="40" y="60" width="20" height="20" fill="#0052FF" />
-          <rect x="60" y="60" width="20" height="20" fill="#0052FF" />
-          <rect x="80" y="60" width="20" height="20" fill="#0052FF" />
-          <rect x="80" y="40" width="20" height="20" fill="#0049E0" />
-          <rect x="80" y="20" width="20" height="20" fill="#0049E0" />
-          <rect x="60" y="20" width="20" height="20" fill="#0049E0" />
-          <rect x="40" y="20" width="20" height="20" fill="#00D4FF" />
-          <rect x="44" y="24" width="4" height="4" fill="#000" />
-          <rect x="52" y="24" width="4" height="4" fill="#000" />
-          <circle cx="25" cy="25" r="8" fill="#ef4444" />
-          <rect x="24" y="18" width="2" height="5" fill="#22c55e" />
-        </svg>
-      </div>
-
-      <h1 style={{
-        fontSize: '48px',
-        fontWeight: '900',
-        background: 'linear-gradient(135deg, #0052FF, #00D4FF)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        marginBottom: '12px',
-        letterSpacing: '4px',
-        textShadow: '0 0 30px rgba(0, 82, 255, 0.3)'
-      }}>
-        SNAKE
-      </h1>
-
-      <p style={{
-        fontSize: '14px',
-        opacity: 0.7,
-        marginBottom: '40px',
-        letterSpacing: '2px'
-      }}>
-        ON BASE NETWORK
-      </p>
-
-      <div style={{
-        width: '280px',
-        height: '8px',
-        background: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: '999px',
-        overflow: 'hidden',
-        position: 'relative'
-      }}>
-        <div style={{
-          width: `${progress}%`,
-          height: '100%',
-          background: 'linear-gradient(90deg, #0052FF, #00D4FF)',
-          borderRadius: '999px',
-          transition: 'width 0.3s ease-out',
-          boxShadow: '0 0 10px rgba(0, 82, 255, 0.5)'
-        }} />
-      </div>
-
-      <p style={{
-        marginTop: '16px',
-        fontSize: '12px',
-        opacity: 0.6,
-        letterSpacing: '1px'
-      }}>
-        {progress < 100 ? `LOADING... ${progress}%` : 'READY!'}
-      </p>
-
-      <div style={{
-        position: 'absolute',
-        bottom: '40px',
-        display: 'flex',
-        gap: '8px'
-      }}>
-        {[0, 1, 2].map(i => (
-          <div key={i} style={{
-            width: '12px',
-            height: '12px',
-            background: '#0052FF',
-            animation: `bounce 1s ease-in-out ${i * 0.2}s infinite`
-          }} />
-        ))}
-      </div>
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.05); opacity: 0.8; }
-        }
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes fadeOut {
-          from { opacity: 1; }
-          to { opacity: 0; pointer-events: none; }
-        }
-      `}</style>
-    </div>
-  );
+function randomFood() {
+  return {
+    x: Math.floor(Math.random() * GRID),
+    y: Math.floor(Math.random() * GRID),
+  };
 }
 
-// ==================== MAIN MENU ====================
-function MainMenu({ onStartGame, highScore }) {
-  return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'radial-gradient(circle at top, #0A0B0D, #000)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 998,
-      padding: '20px'
-    }}>
-      <svg width="150" height="150" viewBox="0 0 120 120" style={{
-        filter: 'drop-shadow(0 0 30px rgba(0, 82, 255, 0.6))',
-        marginBottom: '20px'
-      }}>
-        <rect x="20" y="60" width="20" height="20" fill="#0052FF" />
-        <rect x="40" y="60" width="20" height="20" fill="#0052FF" />
-        <rect x="60" y="60" width="20" height="20" fill="#0052FF" />
-        <rect x="80" y="60" width="20" height="20" fill="#0052FF" />
-        <rect x="80" y="40" width="20" height="20" fill="#0049E0" />
-        <rect x="80" y="20" width="20" height="20" fill="#0049E0" />
-        <rect x="60" y="20" width="20" height="20" fill="#0049E0" />
-        <rect x="40" y="20" width="20" height="20" fill="#00D4FF" />
-        <rect x="44" y="24" width="4" height="4" fill="#000" />
-        <rect x="52" y="24" width="4" height="4" fill="#000" />
-        <circle cx="25" cy="25" r="8" fill="#ef4444" />
-        <rect x="24" y="18" width="2" height="5" fill="#22c55e" />
-      </svg>
-
-      <h1 style={{
-        fontSize: '72px',
-        fontWeight: '900',
-        background: 'linear-gradient(135deg, #0052FF, #00D4FF)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        marginBottom: '8px',
-        letterSpacing: '6px'
-      }}>
-        SNAKE
-      </h1>
-
-      <p style={{
-        fontSize: '16px',
-        opacity: 0.7,
-        marginBottom: '40px',
-        letterSpacing: '3px'
-      }}>
-        ON BASE NETWORK
-      </p>
-
-      {highScore > 0 && (
-        <p style={{
-          fontSize: '18px',
-          marginBottom: '30px',
-          opacity: 0.9
-        }}>
-          🏆 High Score: <span style={{ fontWeight: '700', color: '#fbbf24' }}>{highScore}</span>
-        </p>
-      )}
-
-      <button onClick={onStartGame} style={{
-        padding: '18px 48px',
-        fontSize: '24px',
-        borderRadius: '999px',
-        border: 'none',
-        background: 'linear-gradient(135deg, #0052FF, #0049E0)',
-        color: 'white',
-        fontWeight: '900',
-        cursor: 'pointer',
-        boxShadow: '0 10px 30px rgba(0, 82, 255, 0.4)',
-        transition: 'transform 0.2s',
-        letterSpacing: '2px'
-      }}
-      onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-      >
-        START GAME
-      </button>
-
-      <div style={{
-        marginTop: '50px',
-        textAlign: 'center',
-        opacity: 0.6,
-        fontSize: '14px'
-      }}>
-        <p>Use Arrow Keys or WASD to move</p>
-        <p>Press SPACE to pause</p>
-      </div>
-    </div>
-  );
-}
-
-// ==================== GAME OVER OVERLAY ====================
-function GameOverOverlay({ score, onRestart, onShareTwitter, onShareFarcaster, onShareBase, isPaused, isVictory }) {
-  return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: isVictory ? 'rgba(34, 197, 94, 0.15)' : 'rgba(2, 6, 23, 0.95)',
-      backdropFilter: 'blur(10px)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 999,
-      padding: '20px',
-      animation: isVictory ? 'victoryPulse 2s ease-in-out infinite' : 'none'
-    }}>
-      {isVictory && (
-        <>
-          {/* Confetti Effect */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            overflow: 'hidden',
-            pointerEvents: 'none'
-          }}>
-            {[...Array(50)].map((_, i) => (
-              <div key={i} style={{
-                position: 'absolute',
-                top: '-10px',
-                left: `${Math.random() * 100}%`,
-                width: '10px',
-                height: '10px',
-                background: ['#fbbf24', '#ef4444', '#8b5cf6', '#0052FF', '#22c55e'][i % 5],
-                animation: `fall ${2 + Math.random() * 3}s linear infinite`,
-                animationDelay: `${Math.random() * 2}s`,
-                opacity: 0.8
-              }} />
-            ))}
-          </div>
-
-          {/* Trophy Animation */}
-          <div style={{
-            fontSize: '120px',
-            marginBottom: '20px',
-            animation: 'bounce 1s ease-in-out infinite',
-            filter: 'drop-shadow(0 0 30px rgba(251, 191, 36, 0.8))'
-          }}>
-            🏆
-          </div>
-        </>
-      )}
-
-      <h1 style={{ 
-        fontSize: isVictory ? '48px' : '36px', 
-        marginBottom: '12px', 
-        fontWeight: '900',
-        background: isVictory ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : 'none',
-        WebkitBackgroundClip: isVictory ? 'text' : 'none',
-        WebkitTextFillColor: isVictory ? 'transparent' : 'inherit',
-        textShadow: isVictory ? '0 0 40px rgba(251, 191, 36, 0.5)' : 'none',
-        animation: isVictory ? 'pulse 2s ease-in-out infinite' : 'none'
-      }}>
-        {isVictory ? 'PERFECT GAME!' : isPaused ? 'PAUSED' : 'GAME OVER'}
-      </h1>
-
-      {isVictory && (
-        <p style={{
-          fontSize: '18px',
-          marginBottom: '8px',
-          opacity: 0.9,
-          letterSpacing: '2px',
-          fontWeight: '700',
-          color: '#fbbf24'
-        }}>
-          ⭐ YOU FILLED THE ENTIRE GRID! ⭐
-        </p>
-      )}
-
-      <p style={{ 
-        opacity: 0.8, 
-        marginBottom: '24px', 
-        fontSize: '20px',
-        fontWeight: '700'
-      }}>
-        Score: <span style={{ 
-          fontWeight: '900', 
-          color: isVictory ? '#fbbf24' : '#fbbf24',
-          fontSize: '24px'
-        }}>{score}</span>
-        {isVictory && <span style={{ marginLeft: '10px', fontSize: '24px' }}>🎉</span>}
-      </p>
-      
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '320px' }}>
-        <button onClick={onRestart} style={{
-          padding: '14px 28px',
-          fontSize: '16px',
-          borderRadius: '999px',
-          border: 'none',
-          background: isVictory 
-            ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' 
-            : 'linear-gradient(135deg, #0052FF, #0049E0)',
-          color: isVictory ? '#422006' : 'white',
-          fontWeight: '800',
-          cursor: 'pointer',
-          width: '100%',
-          boxShadow: isVictory ? '0 10px 30px rgba(251, 191, 36, 0.4)' : 'none'
-        }}>
-          {isVictory ? '🎮 PLAY AGAIN' : '🔄 RESTART GAME'}
-        </button>
-        
-        {!isPaused && score > 0 && (
-          <>
-            <div style={{ 
-              fontSize: '12px', 
-              opacity: 0.6, 
-              textAlign: 'center', 
-              margin: '8px 0 4px 0',
-              letterSpacing: '1px'
-            }}>
-              SHARE YOUR {isVictory ? 'VICTORY' : 'SCORE'}
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <button onClick={onShareTwitter} style={{
-                padding: '12px 20px',
-                fontSize: '14px',
-                borderRadius: '12px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #1DA1F2, #0c85d0)',
-                color: 'white',
-                fontWeight: '700',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}>
-                <span style={{ fontSize: '18px' }}>𝕏</span> Twitter
-              </button>
-
-              <button onClick={onShareFarcaster} style={{
-                padding: '12px 20px',
-                fontSize: '14px',
-                borderRadius: '12px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #8a63d2, #7c3aed)',
-                color: 'white',
-                fontWeight: '700',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}>
-                <span style={{ fontSize: '18px' }}>🟣</span> Farcaster
-              </button>
-            </div>
-
-            <button onClick={onShareBase} style={{
-              padding: '12px 20px',
-              fontSize: '14px',
-              borderRadius: '12px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #0052FF, #0049E0)',
-              color: 'white',
-              fontWeight: '700',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              width: '100%'
-            }}>
-              <span style={{ fontSize: '18px' }}>🔵</span> Share to Base
-            </button>
-          </>
-        )}
-      </div>
-
-      {isPaused && (
-        <p style={{ 
-          marginTop: '20px', 
-          opacity: 0.6, 
-          fontSize: '14px' 
-        }}>
-          Press SPACE or Resume to continue
-        </p>
-      )}
-
-      {isVictory && (
-        <div style={{
-          marginTop: '30px',
-          padding: '16px 24px',
-          background: 'rgba(251, 191, 36, 0.1)',
-          border: '2px solid rgba(251, 191, 36, 0.3)',
-          borderRadius: '16px',
-          textAlign: 'center'
-        }}>
-          <p style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>
-            🎊 You're a Snake Master! 🎊
-          </p>
-          <p style={{ fontSize: '12px', opacity: 0.7 }}>
-            You've achieved the impossible - filling all {GRID * GRID} cells!
-          </p>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes fall {
-          to { transform: translateY(100vh) rotate(360deg); }
-        }
-        @keyframes victoryPulse {
-          0%, 100% { background: rgba(34, 197, 94, 0.15); }
-          50% { background: rgba(251, 191, 36, 0.2); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// ==================== MAIN APP ====================
 export default function App() {
   const canvasRef = useRef(null);
   const isMobile = window.innerWidth < 768;
@@ -562,6 +115,7 @@ export default function App() {
   
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showWalletPrompt, setShowWalletPrompt] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
 
@@ -579,8 +133,6 @@ export default function App() {
   
   const [leaderboard, setLeaderboard] = useState([]);
   const [tournamentScores, setTournamentScores] = useState([]);
-  const [showVictory, setShowVictory] = useState(false);
-  const [isPerfectGame, setIsPerfectGame] = useState(false);
 
   useEffect(() => {
     loadGameData();
@@ -603,7 +155,7 @@ export default function App() {
 
     setTimeout(() => {
       setLoading(false);
-      setShowMainMenu(true);
+      setShowWalletPrompt(true);
     }, 300);
   }
 
@@ -645,19 +197,7 @@ export default function App() {
 
   async function connectWallet() {
     if (typeof window.ethereum === 'undefined') {
-      const confirmInstall = window.confirm(
-        'No Web3 wallet detected!\n\n' +
-        'Please install one of these wallets:\n' +
-        '• MetaMask\n' +
-        '• Coinbase Wallet\n' +
-        '• Rainbow Wallet\n' +
-        '• Trust Wallet\n\n' +
-        'Click OK to install MetaMask'
-      );
-      
-      if (confirmInstall) {
-        window.open('https://metamask.io/download/', '_blank');
-      }
+      alert('Please install MetaMask or another Web3 wallet');
       return;
     }
 
@@ -667,7 +207,7 @@ export default function App() {
       });
       
       if (!accounts || accounts.length === 0) {
-        alert('No accounts found. Please unlock your wallet.');
+        alert('No accounts found');
         return;
       }
       
@@ -690,71 +230,48 @@ export default function App() {
               }]
             });
           } catch (addError) {
-            console.error('Failed to add Base network:', addError);
-            alert('Failed to add Base network. Please add it manually in your wallet settings.');
+            alert('Failed to add Base network');
             return;
           }
-        } else if (switchError.code === 4001) {
-          alert('Please switch to Base network to continue.');
-          return;
-        } else {
-          throw switchError;
         }
       }
 
       setWalletAddress(accounts[0]);
       setWalletConnected(true);
-      
       if (soundEnabled) playSound(600, 100, 'sine');
       
-    } catch (err) {
-      console.error('Wallet connection error:', err);
-      
-      let errorMessage = 'Failed to connect wallet.';
-      
-      if (err.code === 4001) {
-        errorMessage = 'Connection rejected. Please approve the connection request.';
-      } else if (err.code === -32002) {
-        errorMessage = 'Connection request already pending. Please check your wallet.';
-      } else if (err.message) {
-        errorMessage = `Error: ${err.message}`;
+      if (showWalletPrompt) {
+        setShowWalletPrompt(false);
+        setShowMainMenu(true);
       }
       
-      alert(errorMessage);
+    } catch (err) {
+      alert('Failed to connect wallet');
     }
   }
 
   async function buySkin(skinId) {
     if (!walletConnected) {
-      alert('Please connect your wallet first!');
-      await connectWallet();
+      alert('Please connect your wallet first');
       return;
     }
 
     const skin = SKINS[skinId];
     if (!skin.locked) return;
 
-    const confirmPurchase = window.confirm(
-      `Purchase ${skin.name} for ${skin.price} ETH?\n\n` +
-      `This will send ${skin.price} ETH to the developer on Base network.`
-    );
-    
-    if (!confirmPurchase) return;
-
     try {
       const priceInWei = '0x' + Math.floor(skin.price * 1e18).toString(16);
       
-      const txHash = await window.ethereum.request({
+      await window.ethereum.request({
         method: 'eth_sendTransaction',
         params: [{
           from: walletAddress,
           to: DEV_WALLET,
           value: priceInWei,
-          gas: '0x5208',
         }],
       });
 
-      alert(`Purchase initiated! 🎉\n\nTransaction: ${txHash.slice(0, 10)}...`);
+      alert('Purchase successful!');
       
       const newOwned = [...ownedSkins, skinId];
       setOwnedSkins(newOwned);
@@ -764,25 +281,15 @@ export default function App() {
       await window.storage.set('current_skin', skinId);
       
       if (soundEnabled) playSound(1000, 150, 'square');
-      
       setShowSkinSelector(false);
     } catch (err) {
-      console.error('Purchase failed:', err);
-      
-      let errorMsg = 'Purchase cancelled or failed.';
-      if (err.code === 4001) {
-        errorMsg = 'Transaction rejected by user.';
-      } else if (err.code === -32603) {
-        errorMsg = 'Insufficient funds or network error.';
-      }
-      
-      alert(errorMsg);
+      alert('Purchase cancelled');
     }
   }
 
   async function sendTip(amount) {
     if (!walletConnected) {
-      alert('Please connect your wallet first!');
+      alert('Please connect your wallet first');
       return;
     }
 
@@ -798,10 +305,10 @@ export default function App() {
         }],
       });
 
-      alert('Thank you for the tip! 🙏💙');
+      alert('Thank you for the tip!');
       setShowTipsModal(false);
     } catch (err) {
-      console.error('Tip failed:', err);
+      console.error('Tip failed');
     }
   }
 
@@ -852,12 +359,6 @@ export default function App() {
           setFood(randomFood());
           setScore((s) => s + 1);
           if (soundEnabled) playSound(800, 80, 'square');
-          
-          // Check if player won (filled entire grid)
-          if (next.length >= GRID * GRID) {
-            victoryGame();
-            return next;
-          }
         } else {
           next.pop();
         }
@@ -921,9 +422,17 @@ export default function App() {
     }
   }
 
+  function getWeekStart() {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+    return monday.getTime();
+  }
+
   async function endGame() {
     setGameOver(true);
-    setIsPerfectGame(false);
     
     if (soundEnabled) {
       playSound(200, 100);
@@ -935,110 +444,43 @@ export default function App() {
       await window.storage.set('high_score', score.toString());
     }
 
-    await saveScore(false);
-  }
-
-  async function victoryGame() {
-    setGameOver(true);
-    setShowVictory(true);
-    setIsPerfectGame(true);
-    
-    // Victory sound sequence
-    if (soundEnabled) {
-      playSound(523, 150, 'square'); // C
-      setTimeout(() => playSound(659, 150, 'square'), 150); // E
-      setTimeout(() => playSound(784, 150, 'square'), 300); // G
-      setTimeout(() => playSound(1047, 300, 'square'), 450); // C (high)
-    }
-    
-    const perfectScore = GRID * GRID;
-    if (perfectScore > highScore) {
-      setHighScore(perfectScore);
-      await window.storage.set('high_score', perfectScore.toString());
-    }
-
-    await saveScore(true);
-  }
-
-  async function saveScore(isPerfect) {
     try {
       const entry = {
-        score: isPerfect ? GRID * GRID : score,
+        score,
         address: walletConnected ? walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4) : 'Guest',
-        timestamp: Date.now(),
-        perfect: isPerfect || false
+        timestamp: Date.now()
       };
 
       const newLB = [...leaderboard, entry]
-        .sort((a, b) => {
-          if (a.perfect && !b.perfect) return -1;
-          if (!a.perfect && b.perfect) return 1;
-          return b.score - a.score;
-        })
+        .sort((a, b) => b.score - a.score)
         .slice(0, 10);
 
       setLeaderboard(newLB);
       await window.storage.set('leaderboard', JSON.stringify(newLB), true);
 
       const weekStart = getWeekStart();
-      const tournamentEntry = {
-        ...entry,
-        week: weekStart
-      };
+      const tournamentEntry = { ...entry, week: weekStart };
 
       const currentWeekScores = tournamentScores.filter(s => s.week === weekStart);
       const otherWeekScores = tournamentScores.filter(s => s.week !== weekStart);
       
       const newTournament = [...currentWeekScores, tournamentEntry]
-        .sort((a, b) => {
-          if (a.perfect && !b.perfect) return -1;
-          if (!a.perfect && b.perfect) return 1;
-          return b.score - a.score;
-        })
+        .sort((a, b) => b.score - a.score)
         .slice(0, 20);
 
       const allTournamentScores = [...newTournament, ...otherWeekScores];
       setTournamentScores(allTournamentScores);
       await window.storage.set('tournament_weekly', JSON.stringify(allTournamentScores), true);
     } catch (err) {
-      console.error('Failed to update leaderboard:', err);
+      console.error('Failed to update leaderboard');
     }
   }
 
   function shareToTwitter() {
-    const timestamp = Date.now();
-    const text = `🐍 I just scored ${score} points in Base Snake Game!${score > 50 ? ' 🔥' : ''}\n\nCan you beat my score?\n\nPlay now 👇`;
-    const url = window.location.href;
+    const text = `I just scored ${score} points in Base Snake Game! Can you beat my score?`;
+    const url = 'https://snake-base-app-xi.vercel.app/';
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
     window.open(twitterUrl, '_blank');
-  }
-
-  function shareToFarcaster() {
-    const timestamp = Date.now();
-    const text = `🐍 I just scored ${score} points in Base Snake Game!${score > 50 ? ' 🔥' : ''}\n\nCan you beat my score?`;
-    const url = window.location.href;
-    const farcasterUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(url)}`;
-    window.open(farcasterUrl, '_blank');
-  }
-
-  function shareToBase() {
-    // Share via Base app (if available) or copy to clipboard
-    const text = `🐍 I just scored ${score} points in Base Snake Game!${score > 50 ? ' 🔥' : ''}\n\nCan you beat my score?\n\n${window.location.href}`;
-    const timestamp = Date.now();
-    
-    if (navigator.share) {
-      navigator.share({
-        title: 'Base Snake Game Score',
-        text: text,
-        url: window.location.href
-      }).catch(err => console.log('Share cancelled'));
-    } else {
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Score copied to clipboard! 📋\n\nShare it on Base or anywhere you like! 💙');
-      }).catch(() => {
-        alert('Unable to copy. Please share manually:\n\n' + text);
-      });
-    }
   }
 
   function restart() {
@@ -1048,8 +490,20 @@ export default function App() {
     setScore(0);
     setGameOver(false);
     setPaused(false);
-    setShowVictory(false);
-    setIsPerfectGame(false);
+  }
+
+  function startGame() {
+    setShowMainMenu(false);
+    setGameStarted(true);
+    restart();
+  }
+
+  function exitToMenu() {
+    setGameStarted(false);
+    setShowMainMenu(true);
+    setGameOver(false);
+    setPaused(false);
+    setScore(0);
   }
 
   async function selectSkin(skinId) {
@@ -1062,25 +516,29 @@ export default function App() {
     }
   }
 
-  function handleStartGame() {
-    setShowMainMenu(false);
-    setGameStarted(true);
-  }
-
-  if (loading) {
-    return <LoadingScreen progress={loadingProgress} />;
-  }
-
-  if (showMainMenu) {
-    return <MainMenu onStartGame={handleStartGame} highScore={highScore} />;
-  }
+  const SnakeLogo = () => (
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <rect x="20" y="60" width="20" height="20" fill="#0052FF" />
+      <rect x="40" y="60" width="20" height="20" fill="#0052FF" />
+      <rect x="60" y="60" width="20" height="20" fill="#0052FF" />
+      <rect x="80" y="60" width="20" height="20" fill="#0052FF" />
+      <rect x="80" y="40" width="20" height="20" fill="#0049E0" />
+      <rect x="80" y="20" width="20" height="20" fill="#0049E0" />
+      <rect x="60" y="20" width="20" height="20" fill="#0049E0" />
+      <rect x="40" y="20" width="20" height="20" fill="#00D4FF" />
+      <rect x="44" y="24" width="4" height="4" fill="#000" />
+      <rect x="52" y="24" width="4" height="4" fill="#000" />
+      <circle cx="25" cy="25" r="8" fill="#ef4444" />
+      <rect x="24" y="18" width="2" height="5" fill="#22c55e" />
+    </svg>
+  );
 
   return (
     <div style={{
       minHeight: '100vh',
       background: 'radial-gradient(circle at top, #0A0B0D, #000)',
       color: '#e5e7eb',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontFamily: 'system-ui',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -1088,290 +546,541 @@ export default function App() {
       padding: '20px',
       gap: '14px'
     }}>
-      {/* Header */}
-      <div style={{
-        width: '100%',
-        maxWidth: '360px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '10px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <svg width="32" height="32" viewBox="0 0 32 32" style={{
-            filter: 'drop-shadow(0 2px 8px rgba(0, 82, 255, 0.4))'
-          }}>
-            <rect x="4" y="16" width="6" height="6" fill="#0052FF" />
-            <rect x="10" y="16" width="6" height="6" fill="#0052FF" />
-            <rect x="16" y="16" width="6" height="6" fill="#0049E0" />
-            <rect x="16" y="10" width="6" height="6" fill="#0049E0" />
-            <rect x="16" y="4" width="6" height="6" fill="#00D4FF" />
-            <rect x="18" y="6" width="1.5" height="1.5" fill="#000" />
-            <circle cx="6" cy="6" r="2.5" fill="#ef4444" />
-          </svg>
-          
-          <h1 style={{ 
-            fontSize: '24px', 
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+        }
+      `}</style>
+
+      {loading && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'linear-gradient(135deg, #0A0B0D 0%, #000814 50%, #001d3d 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{ marginBottom: '40px', animation: 'pulse 2s ease-in-out infinite' }}>
+            <SnakeLogo />
+          </div>
+
+          <h1 style={{
+            fontSize: '48px',
+            fontWeight: '900',
             background: 'linear-gradient(135deg, #0052FF, #00D4FF)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            fontWeight: '800'
-          }}>
-            SNAKE
-          </h1>
-        </div>
-        
-        {!walletConnected ? (
-          <button onClick={connectWallet} style={{
-            background: 'linear-gradient(135deg, #0052FF, #0049E0)',
-            border: 'none',
-            padding: '8px 16px',
-            borderRadius: '999px',
-            color: 'white',
-            fontWeight: '700',
-            fontSize: '14px',
-            cursor: 'pointer'
-          }}>
-            Connect Wallet
-          </button>
-        ) : (
-          <span style={{ fontSize: '12px', opacity: 0.8 }}>
-            {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-          </span>
-        )}
-      </div>
+            marginBottom: '12px'
+          }}>SNAKE</h1>
 
-      {/* Top Bar */}
-      <div style={{
-        width: '100%',
-        maxWidth: '360px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <span style={{ fontWeight: '600' }}>
-          Score: {score} | Best: {highScore}
-        </span>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={() => setPaused(p => !p)} style={{
-            background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-            border: 'none',
-            padding: '6px 12px',
-            borderRadius: '999px',
-            fontSize: '12px',
-            fontWeight: '700',
-            color: '#052e16',
-            cursor: 'pointer'
-          }}>
-            {paused ? 'Resume' : 'Pause'}
-          </button>
-          <button onClick={restart} style={{
-            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-            border: 'none',
-            padding: '6px 12px',
-            borderRadius: '999px',
-            fontSize: '12px',
-            fontWeight: '700',
-            color: 'white',
-            cursor: 'pointer'
-          }}>
-            Restart
-          </button>
-        </div>
-      </div>
+          <p style={{ fontSize: '14px', opacity: 0.7, marginBottom: '40px' }}>
+            ON BASE NETWORK
+          </p>
 
-      {/* Canvas */}
-      <canvas
-        ref={canvasRef}
-        width={GRID * CELL}
-        height={GRID * CELL}
-        onClick={handleCanvasClick}
-        style={{
-          width: '360px',
-          height: '360px',
-          borderRadius: '18px',
-          background: SKINS[currentSkin].bg,
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6)',
-          cursor: 'pointer'
-        }}
-      />
-
-      {/* Action Buttons */}
-      <div style={{
-        width: '100%',
-        maxWidth: '360px',
-        display: 'flex',
-        gap: '8px',
-        justifyContent: 'center'
-      }}>
-        <button onClick={() => setShowSkinSelector(true)} style={{
-          flex: 1,
-          background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '12px',
-          color: 'white',
-          fontWeight: '700',
-          cursor: 'pointer'
-        }}>
-          🎨 Skins
-        </button>
-        <button onClick={() => setShowTournament(true)} style={{
-          flex: 1,
-          background: 'linear-gradient(135deg, #ec4899, #db2777)',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '12px',
-          color: 'white',
-          fontWeight: '700',
-          cursor: 'pointer'
-        }}>
-          🏆 Tournament
-        </button>
-        <button onClick={() => setShowTipsModal(true)} style={{
-          flex: 1,
-          background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '12px',
-          color: 'white',
-          fontWeight: '700',
-          cursor: 'pointer'
-        }}>
-          💎 Tip
-        </button>
-        <button onClick={() => {
-          setSoundEnabled(!soundEnabled);
-          window.storage.set('sound_enabled', (!soundEnabled).toString());
-        }} style={{
-          background: 'linear-gradient(135deg, #64748b, #475569)',
-          border: 'none',
-          padding: '10px 16px',
-          borderRadius: '12px',
-          color: 'white',
-          fontWeight: '700',
-          cursor: 'pointer'
-        }}>
-          {soundEnabled ? '🔊' : '🔇'}
-        </button>
-        <button onClick={() => setShowDpad(!showDpad)} style={{
-          background: 'linear-gradient(135deg, #64748b, #475569)',
-          border: 'none',
-          padding: '10px 16px',
-          borderRadius: '12px',
-          color: 'white',
-          fontWeight: '700',
-          cursor: 'pointer'
-        }}>
-          {showDpad ? '🎮' : '⌨️'}
-        </button>
-      </div>
-
-      {/* D-PAD */}
-      {showDpad && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 64px)',
-          gridTemplateRows: 'repeat(3, 48px)',
-          gap: '8px',
-          marginTop: '6px'
-        }}>
-          <div />
-          <button onClick={() => setDir({ x: 0, y: -1 })} style={{
-            background: 'linear-gradient(180deg, #1e293b, #020617)',
-            border: '1px solid #334155',
-            borderRadius: '14px',
-            color: '#e5e7eb',
-            fontSize: '20px',
-            fontWeight: '700',
-            cursor: 'pointer'
-          }}>▲</button>
-          <div />
-          <button onClick={() => setDir({ x: -1, y: 0 })} style={{
-            background: 'linear-gradient(180deg, #1e293b, #020617)',
-            border: '1px solid #334155',
-            borderRadius: '14px',
-            color: '#e5e7eb',
-            fontSize: '20px',
-            fontWeight: '700',
-            cursor: 'pointer'
-          }}>◀</button>
           <div style={{
-            background: '#020617',
-            borderRadius: '50%',
-            boxShadow: 'inset 0 0 0 2px #1e293b'
-          }} />
-          <button onClick={() => setDir({ x: 1, y: 0 })} style={{
-            background: 'linear-gradient(180deg, #1e293b, #020617)',
-            border: '1px solid #334155',
-            borderRadius: '14px',
-            color: '#e5e7eb',
-            fontSize: '20px',
-            fontWeight: '700',
-            cursor: 'pointer'
-          }}>▶</button>
-          <div />
-          <button onClick={() => setDir({ x: 0, y: 1 })} style={{
-            background: 'linear-gradient(180deg, #1e293b, #020617)',
-            border: '1px solid #334155',
-            borderRadius: '14px',
-            color: '#e5e7eb',
-            fontSize: '20px',
-            fontWeight: '700',
-            cursor: 'pointer'
-          }}>▼</button>
-          <div />
+            width: '280px',
+            height: '8px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '999px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: `${loadingProgress}%`,
+              height: '100%',
+              background: 'linear-gradient(90deg, #0052FF, #00D4FF)',
+              transition: 'width 0.3s'
+            }} />
+          </div>
+
+          <p style={{ marginTop: '16px', fontSize: '12px', opacity: 0.6 }}>
+            {loadingProgress < 100 ? `LOADING... ${loadingProgress}%` : 'READY!'}
+          </p>
         </div>
       )}
 
-      {/* Leaderboard */}
-      <div style={{
-        width: '100%',
-        maxWidth: '360px',
-        background: '#020617',
-        border: '1px solid #1e293b',
-        borderRadius: '20px',
-        padding: '14px 16px'
-      }}>
-        <h3 style={{
-          fontSize: '14px',
-          letterSpacing: '1px',
-          opacity: 0.8,
-          marginBottom: '10px'
-        }}>GLOBAL LEADERBOARD</h3>
-        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-          {leaderboard.length === 0 ? (
-            <p style={{ opacity: 0.5, fontSize: '14px' }}>No scores yet. Be the first! 🚀</p>
-          ) : (
-            leaderboard.map((entry, i) => (
-              <div key={i} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '12px',
-                marginBottom: '6px',
-                background: entry.perfect 
-                  ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' 
-                  : i === 0 
-                    ? 'linear-gradient(135deg, #fde047, #facc15)' 
-                    : '#0A0B0D',
-                border: '1px solid #1e293b',
-                color: (entry.perfect || i === 0) ? '#422006' : '#e5e7eb',
-                fontWeight: (entry.perfect || i === 0) ? '800' : '400',
-                position: 'relative'
-              }}>
-                <span>
-                  {entry.perfect && '🏆 '}
-                  #{i + 1} {entry.address}
-                </span>
-                <span>{entry.score}{entry.perfect && ' ⭐'}</span>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+      {showWalletPrompt && !loading && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'linear-gradient(135deg, #0A0B0D 0%, #000814 50%, #001d3d 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9998
+        }}>
+          <div style={{ marginBottom: '30px', animation: 'float 3s ease-in-out infinite' }}>
+            <svg width="140" height="140" viewBox="0 0 120 120">
+              <rect x="20" y="60" width="20" height="20" fill="#0052FF" />
+              <rect x="40" y="60" width="20" height="20" fill="#0052FF" />
+              <rect x="60" y="60" width="20" height="20" fill="#0052FF" />
+              <rect x="80" y="60" width="20" height="20" fill="#0052FF" />
+              <rect x="80" y="40" width="20" height="20" fill="#0049E0" />
+              <rect x="80" y="20" width="20" height="20" fill="#0049E0" />
+              <rect x="60" y="20" width="20" height="20" fill="#0049E0" />
+              <rect x="40" y="20" width="20" height="20" fill="#00D4FF" />
+              <rect x="44" y="24" width="4" height="4" fill="#000" />
+              <rect x="52" y="24" width="4" height="4" fill="#000" />
+              <circle cx="25" cy="25" r="8" fill="#ef4444" />
+              <rect x="24" y="18" width="2" height="5" fill="#22c55e" />
+            </svg>
+          </div>
 
-      {/* Skin Selector Modal */}
+          <h1 style={{
+            fontSize: '64px',
+            fontWeight: '900',
+            background: 'linear-gradient(135deg, #0052FF, #00D4FF)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '8px'
+          }}>SNAKE</h1>
+
+          <p style={{ fontSize: '14px', opacity: 0.7, marginBottom: '50px' }}>
+            ON BASE NETWORK
+          </p>
+
+          <div style={{
+            background: 'rgba(0, 82, 255, 0.1)',
+            border: '2px solid rgba(0, 82, 255, 0.3)',
+            borderRadius: '20px',
+            padding: '32px',
+            maxWidth: '450px',
+            textAlign: 'center',
+            marginBottom: '30px'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>💼</div>
+            <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '12px' }}>
+              Connect Your Wallet
+            </h2>
+            <p style={{ fontSize: '14px', opacity: 0.8, marginBottom: '24px' }}>
+              Connect to unlock NFT skins, tournaments, and save scores on-chain
+            </p>
+            
+            <button onClick={async () => {
+              if (soundEnabled) playSound(600, 100);
+              await connectWallet();
+            }} style={{
+              background: 'linear-gradient(135deg, #0052FF, #0049E0)',
+              border: 'none',
+              padding: '16px 40px',
+              borderRadius: '16px',
+              color: 'white',
+              fontWeight: '800',
+              fontSize: '18px',
+              cursor: 'pointer',
+              width: '100%',
+              marginBottom: '12px'
+            }}>
+              Connect Wallet
+            </button>
+
+            <button onClick={() => {
+              if (soundEnabled) playSound(500, 80);
+              setShowWalletPrompt(false);
+              setShowMainMenu(true);
+            }} style={{
+              background: 'transparent',
+              border: '2px solid rgba(255, 255, 255, 0.2)',
+              padding: '14px 40px',
+              borderRadius: '16px',
+              color: '#e5e7eb',
+              fontWeight: '600',
+              fontSize: '16px',
+              cursor: 'pointer',
+              width: '100%'
+            }}>
+              Skip for Now
+            </button>
+          </div>
+
+          <p style={{ fontSize: '12px', opacity: 0.5, maxWidth: '400px', textAlign: 'center' }}>
+            You can play as guest and connect wallet later from menu
+          </p>
+        </div>
+      )}
+
+      {showMainMenu && !loading && !showWalletPrompt && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'linear-gradient(135deg, #0A0B0D 0%, #000814 50%, #001d3d 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9998
+        }}>
+          <div style={{ marginBottom: '30px', animation: 'float 3s ease-in-out infinite' }}>
+            <svg width="140" height="140" viewBox="0 0 120 120">
+              <rect x="20" y="60" width="20" height="20" fill="#0052FF" />
+              <rect x="40" y="60" width="20" height="20" fill="#0052FF" />
+              <rect x="60" y="60" width="20" height="20" fill="#0052FF" />
+              <rect x="80" y="60" width="20" height="20" fill="#0052FF" />
+              <rect x="80" y="40" width="20" height="20" fill="#0049E0" />
+              <rect x="80" y="20" width="20" height="20" fill="#0049E0" />
+              <rect x="60" y="20" width="20" height="20" fill="#0049E0" />
+              <rect x="40" y="20" width="20" height="20" fill="#00D4FF" />
+              <rect x="44" y="24" width="4" height="4" fill="#000" />
+              <rect x="52" y="24" width="4" height="4" fill="#000" />
+              <circle cx="25" cy="25" r="8" fill="#ef4444" />
+              <rect x="24" y="18" width="2" height="5" fill="#22c55e" />
+            </svg>
+          </div>
+
+          <h1 style={{
+            fontSize: '64px',
+            fontWeight: '900',
+            background: 'linear-gradient(135deg, #0052FF, #00D4FF)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '8px'
+          }}>SNAKE</h1>
+
+          <p style={{ fontSize: '14px', opacity: 0.7, marginBottom: '50px' }}>
+            ON BASE NETWORK
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '320px' }}>
+            <button onClick={() => {
+              if (soundEnabled) playSound(600, 100);
+              startGame();
+            }} style={{
+              background: 'linear-gradient(135deg, #0052FF, #0049E0)',
+              border: 'none',
+              padding: '18px 40px',
+              borderRadius: '16px',
+              color: 'white',
+              fontWeight: '800',
+              fontSize: '20px',
+              cursor: 'pointer'
+            }}>
+              PLAY GAME
+            </button>
+
+            <button onClick={() => {
+              if (soundEnabled) playSound(500, 80);
+              setShowMainMenu(false);
+              setShowSkinSelector(true);
+            }} style={{
+              background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+              border: 'none',
+              padding: '16px 40px',
+              borderRadius: '16px',
+              color: 'white',
+              fontWeight: '700',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}>
+              SKINS
+            </button>
+
+            <button onClick={() => {
+              if (soundEnabled) playSound(500, 80);
+              setShowMainMenu(false);
+              setShowTournament(true);
+            }} style={{
+              background: 'linear-gradient(135deg, #ec4899, #db2777)',
+              border: 'none',
+              padding: '16px 40px',
+              borderRadius: '16px',
+              color: 'white',
+              fontWeight: '700',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}>
+              LEADERBOARD
+            </button>
+
+            {!walletConnected && (
+              <button onClick={async () => {
+                if (soundEnabled) playSound(500, 80);
+                await connectWallet();
+              }} style={{
+                background: 'transparent',
+                border: '2px solid rgba(0, 82, 255, 0.5)',
+                padding: '16px 40px',
+                borderRadius: '16px',
+                color: '#0052FF',
+                fontWeight: '700',
+                fontSize: '16px',
+                cursor: 'pointer'
+              }}>
+                CONNECT WALLET
+              </button>
+            )}
+          </div>
+
+          <div style={{
+            position: 'absolute',
+            bottom: '30px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            {highScore > 0 && (
+              <div style={{
+                padding: '8px 20px',
+                background: 'rgba(0, 82, 255, 0.1)',
+                border: '1px solid rgba(0, 82, 255, 0.3)',
+                borderRadius: '999px',
+                fontSize: '14px'
+              }}>
+                Best Score: {highScore}
+              </div>
+            )}
+
+            <button onClick={() => {
+              const newSound = !soundEnabled;
+              setSoundEnabled(newSound);
+              if (newSound) playSound(600, 80);
+              window.storage.set('sound_enabled', newSound.toString());
+            }} style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              padding: '8px 16px',
+              borderRadius: '999px',
+              color: '#e5e7eb',
+              fontSize: '12px',
+              cursor: 'pointer'
+            }}>
+              {soundEnabled ? 'Sound ON' : 'Sound OFF'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {gameStarted && (
+        <>
+          <div style={{
+            width: '100%',
+            maxWidth: '360px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '10px'
+          }}>
+            <h1 style={{ 
+              fontSize: '24px', 
+              background: 'linear-gradient(135deg, #0052FF, #00D4FF)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontWeight: '800'
+            }}>SNAKE</h1>
+            
+            {!walletConnected ? (
+              <button onClick={connectWallet} style={{
+                background: 'linear-gradient(135deg, #0052FF, #0049E0)',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '999px',
+                color: 'white',
+                fontWeight: '700',
+                fontSize: '12px',
+                cursor: 'pointer'
+              }}>Connect</button>
+            ) : (
+              <span style={{ fontSize: '11px', opacity: 0.8 }}>
+                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+              </span>
+            )}
+          </div>
+
+          <div style={{
+            width: '100%',
+            maxWidth: '360px',
+            display: 'flex',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{ fontWeight: '600', fontSize: '14px' }}>
+              Score: {score} | Best: {highScore}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => setPaused(p => !p)} style={{
+                background: '#22c55e',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '999px',
+                fontSize: '11px',
+                color: '#fff',
+                cursor: 'pointer'
+              }}>{paused ? 'Resume' : 'Pause'}</button>
+              <button onClick={restart} style={{
+                background: '#ef4444',
+                border: 'none',
+                padding: '6px 12px',
+                borderRadius: '999px',
+                fontSize: '11px',
+                color: 'white',
+                cursor: 'pointer'
+              }}>Restart</button>
+            </div>
+          </div>
+
+          <canvas ref={canvasRef} width={GRID * CELL} height={GRID * CELL} onClick={handleCanvasClick} style={{
+            width: '360px',
+            height: '360px',
+            borderRadius: '18px',
+            background: SKINS[currentSkin].bg,
+            cursor: 'pointer'
+          }} />
+
+          <div style={{
+            width: '100%',
+            maxWidth: '360px',
+            display: 'flex',
+            gap: '8px'
+          }}>
+            <button onClick={() => setShowTournament(true)} style={{
+              flex: 1,
+              background: '#ec4899',
+              border: 'none',
+              padding: '10px',
+              borderRadius: '12px',
+              color: 'white',
+              cursor: 'pointer'
+            }}>🏆</button>
+            <button onClick={() => setShowTipsModal(true)} style={{
+              flex: 1,
+              background: '#f59e0b',
+              border: 'none',
+              padding: '10px',
+              borderRadius: '12px',
+              color: 'white',
+              cursor: 'pointer'
+            }}>💎</button>
+            <button onClick={() => {
+              setSoundEnabled(!soundEnabled);
+              window.storage.set('sound_enabled', (!soundEnabled).toString());
+            }} style={{
+              background: '#64748b',
+              border: 'none',
+              padding: '10px',
+              borderRadius: '12px',
+              color: 'white',
+              cursor: 'pointer'
+            }}>{soundEnabled ? '🔊' : '🔇'}</button>
+            <button onClick={() => setShowDpad(!showDpad)} style={{
+              background: '#64748b',
+              border: 'none',
+              padding: '10px',
+              borderRadius: '12px',
+              color: 'white',
+              cursor: 'pointer'
+            }}>{showDpad ? '🎮' : '⌨️'}</button>
+          </div>
+
+          {showDpad && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 60px)',
+              gridTemplateRows: 'repeat(3, 45px)',
+              gap: '8px'
+            }}>
+              <div />
+              <button onClick={() => setDir({ x: 0, y: -1 })} style={{
+                background: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '12px',
+                color: '#e5e7eb',
+                fontSize: '18px',
+                cursor: 'pointer'
+              }}>▲</button>
+              <div />
+              <button onClick={() => setDir({ x: -1, y: 0 })} style={{
+                background: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '12px',
+                color: '#e5e7eb',
+                fontSize: '18px',
+                cursor: 'pointer'
+              }}>◀</button>
+              <div style={{ background: '#020617', borderRadius: '50%' }} />
+              <button onClick={() => setDir({ x: 1, y: 0 })} style={{
+                background: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '12px',
+                color: '#e5e7eb',
+                fontSize: '18px',
+                cursor: 'pointer'
+              }}>▶</button>
+              <div />
+              <button onClick={() => setDir({ x: 0, y: 1 })} style={{
+                background: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '12px',
+                color: '#e5e7eb',
+                fontSize: '18px',
+                cursor: 'pointer'
+              }}>▼</button>
+              <div />
+            </div>
+          )}
+        </>
+      )}
+
+      {(paused || gameOver) && gameStarted && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(2, 6, 23, 0.95)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 999
+        }}>
+          <h1 style={{ fontSize: '36px', marginBottom: '8px' }}>
+            {gameOver ? 'GAME OVER' : 'PAUSED'}
+          </h1>
+          <p style={{ opacity: 0.8, marginBottom: '20px' }}>Score: {score}</p>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button onClick={restart} style={{
+              padding: '12px 28px',
+              fontSize: '16px',
+              borderRadius: '999px',
+              border: 'none',
+              background: '#0052FF',
+              color: 'white',
+              fontWeight: '800',
+              cursor: 'pointer'
+            }}>RESTART</button>
+            {gameOver && score > 0 && (
+              <>
+                <button onClick={shareToTwitter} style={{
+                  padding: '12px 28px',
+                  fontSize: '16px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  background: '#1DA1F2',
+                  color: 'white',
+                  fontWeight: '800',
+                  cursor: 'pointer'
+                }}>Share</button>
+                <button onClick={exitToMenu} style={{
+                  padding: '12px 28px',
+                  fontSize: '16px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  background: '#64748b',
+                  color: 'white',
+                  fontWeight: '800',
+                  cursor: 'pointer'
+                }}>MENU</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {showSkinSelector && (
         <div style={{
           position: 'fixed',
@@ -1396,11 +1105,13 @@ export default function App() {
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center',
               marginBottom: '20px'
             }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '700' }}>🎨 Choose Your Skin</h2>
-              <button onClick={() => setShowSkinSelector(false)} style={{
+              <h2 style={{ fontSize: '20px' }}>Choose Your Skin</h2>
+              <button onClick={() => {
+                setShowSkinSelector(false);
+                if (!gameStarted) setShowMainMenu(true);
+              }} style={{
                 background: 'none',
                 border: 'none',
                 color: '#e5e7eb',
@@ -1424,8 +1135,7 @@ export default function App() {
                     border: active ? '2px solid #0052FF' : '1px solid #1e293b',
                     borderRadius: '12px',
                     padding: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    cursor: 'pointer'
                   }} onClick={() => selectSkin(id)}>
                     <div style={{
                       width: '100%',
@@ -1438,17 +1148,8 @@ export default function App() {
                       marginBottom: '8px',
                       position: 'relative'
                     }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        background: skin.snake,
-                        marginRight: '4px'
-                      }} />
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        background: skin.head
-                      }} />
+                      <div style={{ width: '20px', height: '20px', background: skin.snake, marginRight: '4px' }} />
+                      <div style={{ width: '20px', height: '20px', background: skin.head }} />
                       <div style={{
                         width: '16px',
                         height: '16px',
@@ -1458,7 +1159,7 @@ export default function App() {
                         right: '10px'
                       }} />
                     </div>
-                    <h4 style={{ fontSize: '12px', fontWeight: '700', marginBottom: '4px' }}>
+                    <h4 style={{ fontSize: '12px', marginBottom: '4px' }}>
                       {skin.name}
                     </h4>
                     <p style={{ fontSize: '10px', opacity: 0.7, marginBottom: '8px' }}>
@@ -1467,26 +1168,24 @@ export default function App() {
                     {owned ? (
                       <div style={{
                         background: active ? '#22c55e' : '#334155',
-                        color: active ? '#052e16' : '#e5e7eb',
+                        color: active ? '#000' : '#e5e7eb',
                         padding: '4px 8px',
                         borderRadius: '6px',
                         fontSize: '11px',
-                        fontWeight: '700',
                         textAlign: 'center'
                       }}>
-                        {active ? '✓ Active' : 'Owned'}
+                        {active ? 'Active' : 'Owned'}
                       </div>
                     ) : (
                       <div style={{
-                        background: 'linear-gradient(135deg, #0052FF, #0049E0)',
+                        background: '#0052FF',
                         color: 'white',
                         padding: '4px 8px',
                         borderRadius: '6px',
                         fontSize: '11px',
-                        fontWeight: '700',
                         textAlign: 'center'
                       }}>
-                        🔒 {skin.price} ETH
+                        {skin.price} ETH
                       </div>
                     )}
                   </div>
@@ -1497,7 +1196,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Tips Modal */}
       {showTipsModal && (
         <div style={{
           position: 'fixed',
@@ -1518,10 +1216,8 @@ export default function App() {
             width: '100%',
             textAlign: 'center'
           }}>
-            <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>💎 Send a Tip</h2>
-            <p style={{ opacity: 0.7, marginBottom: '20px', fontSize: '14px' }}>
-              Support the developer and help keep this game running! 🙏
-            </p>
+            <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>Send a Tip</h2>
+            <p style={{ opacity: 0.7, marginBottom: '20px', fontSize: '14px' }}>Support the developer</p>
             
             <div style={{
               display: 'grid',
@@ -1531,17 +1227,14 @@ export default function App() {
             }}>
               {[0.0001, 0.0005, 0.001, 0.005].map(amount => (
                 <button key={amount} onClick={() => sendTip(amount)} style={{
-                  background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                  background: '#f59e0b',
                   border: 'none',
                   padding: '16px',
                   borderRadius: '12px',
                   color: 'white',
                   fontWeight: '700',
-                  cursor: 'pointer',
-                  fontSize: '16px'
-                }}>
-                  {amount} ETH
-                </button>
+                  cursor: 'pointer'
+                }}>{amount} ETH</button>
               ))}
             </div>
 
@@ -1551,17 +1244,13 @@ export default function App() {
               padding: '12px 24px',
               borderRadius: '12px',
               color: '#e5e7eb',
-              fontWeight: '600',
               cursor: 'pointer',
               width: '100%'
-            }}>
-              Close
-            </button>
+            }}>Close</button>
           </div>
         </div>
       )}
 
-      {/* Tournament Modal */}
       {showTournament && (
         <div style={{
           position: 'fixed',
@@ -1586,11 +1275,13 @@ export default function App() {
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center',
               marginBottom: '20px'
             }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '700' }}>🏆 Weekly Tournament</h2>
-              <button onClick={() => setShowTournament(false)} style={{
+              <h2 style={{ fontSize: '20px' }}>Weekly Tournament</h2>
+              <button onClick={() => {
+                setShowTournament(false);
+                if (!gameStarted) setShowMainMenu(true);
+              }} style={{
                 background: 'none',
                 border: 'none',
                 color: '#e5e7eb',
@@ -1606,20 +1297,20 @@ export default function App() {
               padding: '16px',
               marginBottom: '16px'
             }}>
-              <p style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>
-                🗓️ Tournament resets every Monday
+              <p style={{ fontSize: '14px', marginBottom: '8px' }}>
+                Tournament resets every Monday
               </p>
               <p style={{ fontSize: '12px', opacity: 0.7 }}>
-                Compete for the top spot and earn bragging rights! Top 3 players get special recognition.
+                Compete for the top spot
               </p>
             </div>
 
-            <h3 style={{ fontSize: '14px', marginBottom: '12px', opacity: 0.8 }}>THIS WEEK'S RANKINGS</h3>
+            <h3 style={{ fontSize: '14px', marginBottom: '12px' }}>THIS WEEK</h3>
             
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {tournamentScores.filter(s => s.week === getWeekStart()).length === 0 ? (
                 <p style={{ opacity: 0.5, fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
-                  No scores yet this week. Be the first! 🚀
+                  No scores yet this week
                 </p>
               ) : (
                 tournamentScores
@@ -1628,48 +1319,28 @@ export default function App() {
                     <div key={i} style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '12px 14px',
+                      padding: '12px',
                       borderRadius: '12px',
                       marginBottom: '8px',
-                      background: entry.perfect
-                        ? 'linear-gradient(135deg, #fbbf24, #f59e0b)'
-                        : i === 0 ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' :
-                                   i === 1 ? 'linear-gradient(135deg, #d1d5db, #9ca3af)' :
-                                   i === 2 ? 'linear-gradient(135deg, #cd7f32, #b87333)' :
-                                   '#0A0B0D',
+                      background: i === 0 ? '#fbbf24' :
+                                 i === 1 ? '#d1d5db' :
+                                 i === 2 ? '#cd7f32' : '#0A0B0D',
                       border: '1px solid #1e293b',
-                      color: (entry.perfect || i < 3) ? '#000' : '#e5e7eb',
-                      fontWeight: (entry.perfect || i < 3) ? '800' : '400'
+                      color: i < 3 ? '#000' : '#e5e7eb'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontSize: '18px' }}>
-                          {entry.perfect ? '🏆' : i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <span>
+                          {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                         </span>
                         <span>{entry.address}</span>
                       </div>
-                      <span style={{ fontSize: '16px', fontWeight: '700' }}>
-                        {entry.score}{entry.perfect && ' ⭐'}
-                      </span>
+                      <span>{entry.score}</span>
                     </div>
                   ))
               )}
             </div>
           </div>
         </div>
-      )}
-
-      {/* Game Over / Paused Overlay */}
-      {(paused || gameOver) && (
-        <GameOverOverlay 
-          score={score} 
-          onRestart={restart} 
-          onShareTwitter={shareToTwitter}
-          onShareFarcaster={shareToFarcaster}
-          onShareBase={shareToBase}
-          isPaused={paused}
-          isVictory={showVictory}
-        />
       )}
     </div>
   );
