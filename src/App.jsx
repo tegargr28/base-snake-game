@@ -483,6 +483,27 @@ export default function App() {
     window.open(twitterUrl, '_blank');
   }
 
+  function shareToFarcaster() {
+    const text = `I just scored ${score} points in Base Snake Game! Can you beat my score?`;
+    const url = 'https://snake-base-app-xi.vercel.app/';
+    const farcasterUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(url)}`;
+    window.open(farcasterUrl, '_blank');
+  }
+
+  function shareGeneric() {
+    const shareData = {
+      title: 'Base Snake Game',
+      text: `I just scored ${score} points! Can you beat my score?`,
+      url: 'https://snake-base-app-xi.vercel.app/'
+    };
+    
+    if (navigator.share) {
+      navigator.share(shareData).catch(err => console.log('Share cancelled'));
+    } else {
+      shareToTwitter();
+    }
+  }
+
   function restart() {
     setSnake([{ x: 9, y: 9 }]);
     setDir({ x: 1, y: 0 });
@@ -1042,7 +1063,66 @@ export default function App() {
             {gameOver ? 'GAME OVER' : 'PAUSED'}
           </h1>
           <p style={{ opacity: 0.8, marginBottom: '20px' }}>Score: {score}</p>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          
+          {gameOver && score > 0 ? (
+            <>
+              <p style={{ fontSize: '14px', opacity: 0.7, marginBottom: '20px' }}>Share your score!</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', width: '280px' }}>
+                <button onClick={shareToTwitter} style={{
+                  padding: '12px 28px',
+                  fontSize: '16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #1DA1F2, #0c85d0)',
+                  color: 'white',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}>
+                  <span>🐦</span> Share on Twitter
+                </button>
+                
+                <button onClick={shareToFarcaster} style={{
+                  padding: '12px 28px',
+                  fontSize: '16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #8a63d2, #6f4bc5)',
+                  color: 'white',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}>
+                  <span>📡</span> Share on Farcaster
+                </button>
+
+                <button onClick={shareGeneric} style={{
+                  padding: '12px 28px',
+                  fontSize: '16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #0052FF, #0049E0)',
+                  color: 'white',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}>
+                  <span>📤</span> Share Other
+                </button>
+              </div>
+            </>
+          ) : null}
+          
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
             <button onClick={restart} style={{
               padding: '12px 28px',
               fontSize: '16px',
@@ -1053,29 +1133,17 @@ export default function App() {
               fontWeight: '800',
               cursor: 'pointer'
             }}>RESTART</button>
-            {gameOver && score > 0 && (
-              <>
-                <button onClick={shareToTwitter} style={{
-                  padding: '12px 28px',
-                  fontSize: '16px',
-                  borderRadius: '999px',
-                  border: 'none',
-                  background: '#1DA1F2',
-                  color: 'white',
-                  fontWeight: '800',
-                  cursor: 'pointer'
-                }}>Share</button>
-                <button onClick={exitToMenu} style={{
-                  padding: '12px 28px',
-                  fontSize: '16px',
-                  borderRadius: '999px',
-                  border: 'none',
-                  background: '#64748b',
-                  color: 'white',
-                  fontWeight: '800',
-                  cursor: 'pointer'
-                }}>MENU</button>
-              </>
+            {gameOver && (
+              <button onClick={exitToMenu} style={{
+                padding: '12px 28px',
+                fontSize: '16px',
+                borderRadius: '999px',
+                border: 'none',
+                background: '#64748b',
+                color: 'white',
+                fontWeight: '800',
+                cursor: 'pointer'
+              }}>MENU</button>
             )}
           </div>
         </div>
